@@ -1,0 +1,50 @@
+# =========================
+# Neovim generated files
+# =========================
+
+# Swap / backup files
+*.swp
+*.swo
+*.swn
+*.bak
+*~
+
+# Session files
+Session.vim
+
+# ShaDa (Neovim history/undo)
+*.shada
+*.shada.*
+shada/
+
+# Logs
+*.log
+
+# =========================
+# Plugin managers (optional)
+# =========================
+
+# lazy.nvim
+lazy-lock.json
+
+# packer.nvim (if used)
+packer_compiled.lua
+
+# =========================
+# Cache / runtime
+# =========================
+.cache/
+nvim/.cache/
+
+# =========================
+# OS junk
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Secrets (only if you ever add them)
+# =========================
+.env
+*.key
+*.pem
