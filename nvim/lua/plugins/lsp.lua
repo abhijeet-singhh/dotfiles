@@ -14,7 +14,11 @@ vim.diagnostic.config({
   severity_sort = true,
 })
 
+local lsp_capabilities = require("cmp_nvim_lsp").default_capabilities()
+lsp_capabilities.textDocument.completion.completionItem.snippetSupport = true
+
 vim.lsp.config('lua_ls', {
+  capabilities = lsp_capabilities,
   settings = {
     Lua = {
       runtime = { version = 'LuaJIT' },
@@ -25,65 +29,63 @@ vim.lsp.config('lua_ls', {
   },
 })
 
-vim.lsp.config('gopls', {
-  settings = {
-    gopls = {
-      analyses = { unusedparams = true, shadow = true },
-      staticcheck = true,
-      gofumpt = true,
-      hints = {
-        assignVariableTypes = true, compositeLiteralFields = true,
-        compositeLiteralTypes = true, constantValues = true,
-        functionTypeParameters = true, parameterNames = true, rangeVariableTypes = true,
-      },
-    },
-  },
-})
+vim.api.nvim_create_user_command("LspInfo", function()
+  local clients = vim.lsp.get_clients()
+  print("Active LSP clients:")
+  if #clients == 0 then
+    print("  (none)")
+  else
+    for _, client in ipairs(clients) do
+      print("  - " .. client.name .. " (id: " .. client.id .. ")")
+    end
+  end
+end, {})
 
-vim.lsp.config('rust_analyzer', {
-  settings = {
-    ['rust-analyzer'] = {
-      cargo = { allFeatures = true },
-      checkOnSave = { command = 'clippy', extraArgs = { '--no-deps' } },
-      procMacro = { enable = true },
-      inlayHints = {
-        bindingModeHints = { enable = true },
-        closureReturnTypeHints = { enable = 'always' },
-        lifetimeElisionHints = { enable = 'always', useParameterNames = true },
-      },
-    },
-  },
-})
+vim.api.nvim_create_user_command("LspRestart", function()
+  local clients = vim.lsp.get_clients()
+  for _, client in ipairs(clients) do
+    client:stop()
+  end
+end, {})
 
-vim.lsp.config('ts_ls', {
-  settings = {
-    typescript = { inlayHints = { includeInlayParameterNameHints = 'all', includeInlayFunctionParameterTypeHints = true, includeInlayVariableTypeHints = true, includeInlayReturnTypeHints = true } },
-    javascript = { inlayHints = { includeInlayParameterNameHints = 'literals' } },
-  },
-})
+vim.api.nvim_create_user_command("LspLog", function()
+  vim.cmd("edit " .. vim.fn.stdpath("log") .. "/lsp.log")
+end, {})
 
-vim.lsp.config('cssls', {})
-vim.lsp.config('html', {})
-vim.lsp.config('jsonls', {
-  settings = { json = { schemas = require('schemastore').json.schemas(), validate = { enable = true } } },
-})
-vim.lsp.config('yamlls', {})
-vim.lsp.config('dockerls', {})
-vim.lsp.config('bashls', {})
-vim.lsp.config('clangd', {
-  cmd = { 'clangd', '--background-index', '--clang-tidy', '--completion-style=detailed', '--header-insertion=iwyu' },
-})
+vim.api.nvim_create_user_command("LspDebug", function()
+  local clients = vim.lsp.get_clients()
+  for _, client in ipairs(clients) do
+    print("  " .. client.name .. ": id=" .. client.id)
+  end
+end, {})
 
-vim.lsp.enable({
-  'lua_ls', 'gopls', 'rust_analyzer', 'ts_ls',
-  'cssls', 'html', 'jsonls', 'yamlls', 'dockerls', 'bashls', 'clangd',
-})
-
-vim.api.nvim_create_autocmd('LspAttach', {
-  callback = function(ev)
-    local client = vim.lsp.get_client_by_id(ev.data.client_id)
-    if client and client.supports_method('textDocument/completion') then
-      vim.lsp.completion.enable(true, client.id, ev.buf, { autotrigger = true })
+vim.api.nvim_create_autocmd('FileType', {
+  group = vim.api.nvim_create_augroup('user_lsp_auto_start', { clear = true }),
+  pattern = { 'typescript', 'javascript', 'typescriptreact', 'javascriptreact', 'rust', 'go' },
+  callback = function()
+    local ft = vim.bo.filetype
+    local configs = {
+      typescript = { name = 'ts_ls', cmd = { "/home/abhijeet/.nvm/versions/node/v22.19.0/bin/typescript-language-server", "--stdio" }, root = { "package.json", "tsconfig.json", ".git" } },
+      javascript = { name = 'ts_ls', cmd = { "/home/abhijeet/.nvm/versions/node/v22.19.0/bin/typescript-language-server", "--stdio" }, root = { "package.json", ".git" } },
+      typescriptreact = { name = 'ts_ls', cmd = { "/home/abhijeet/.nvm/versions/node/v22.19.0/bin/typescript-language-server", "--stdio" }, root = { "package.json", "tsconfig.json", ".git" } },
+      javascriptreact = { name = 'ts_ls', cmd = { "/home/abhijeet/.nvm/versions/node/v22.19.0/bin/typescript-language-server", "--stdio" }, root = { "package.json", ".git" } },
+      rust = { name = 'rust_analyzer', cmd = { "/home/abhijeet/.cargo/bin/rust-analyzer" }, root = { "Cargo.toml", "Cargo.lock", ".git" } },
+      go = { name = 'gopls', cmd = { "/home/abhijeet/go/bin/gopls" }, root = { "go.mod", ".git" } },
+    }
+    local config = configs[ft]
+    if config then
+      for _, client in ipairs(vim.lsp.get_clients({ name = config.name })) do
+        return
+      end
+      local root = vim.fs.find(config.root, { upward = true })[1]
+      if root then
+        vim.lsp.start({
+          name = config.name,
+          cmd = config.cmd,
+          root_dir = root,
+          capabilities = lsp_capabilities,
+        })
+      end
     end
   end,
 })

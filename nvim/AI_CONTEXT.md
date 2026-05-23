@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a Neovim v0.13+ configuration using native APIs (no lspconfig, no nvim-cmp). Uses `vim.pack` for plugin management.
+This is a Neovim v0.13+ configuration using native APIs with **nvim-cmp** for autocompletion. Uses `vim.pack` for plugin management.
 
 **Philosophy:** Native-first, zero bloat, fast startup, clean aesthetics.
 **Languages:** TypeScript/JS, Go, Rust, C/C++, Lua, Bash
@@ -14,7 +14,7 @@ This is a Neovim v0.13+ configuration using native APIs (no lspconfig, no nvim-c
 | Command | Description |
 |---------|-------------|
 | `nvim` | Open nvim |
-| `vim.pack.update()` | Install/update plugins |
+| `GIT_TERMINAL_PROMPT=0 nvim --headless "+lua vim.pack.update()" +qa` | Install/update plugins |
 | `:LspInfo` | Check LSP status |
 | `:TSInstall <lang>` | Install treesitter parser |
 | `:checkhealth` | Run health checks |
@@ -31,24 +31,25 @@ This is a Neovim v0.13+ configuration using native APIs (no lspconfig, no nvim-c
 │   │   ├── init.lua              # Loads: options → autocmds → keymaps → pack
 │   │   ├── options.lua           # vim.opt settings
 │   │   ├── keymaps.lua           # Global keymaps (no plugin deps)
-│   │   ├── autocmds.lua           # Autocommands
-│   │   └── pack.lua              # Plugin specs (vim.pack.add)
+│   │   ├── autocmds.lua          # Autocommands
+│   │   └── pack.lua             # Plugin specs (vim.pack.add)
 │   ├── plugins/
-│   │   ├── lsp.lua               # Native LSP (vim.lsp.config)
-│   │   ├── treesitter.lua        # nvim-treesitter setup
-│   │   ├── ui.lua                # tokyonight + statusline
-│   │   ├── fuzzy.lua             # fzf-lua
-│   │   ├── git.lua               # gitsigns
-│   │   ├── editing.lua           # surround, autopairs, mini
-│   │   ├── explorer.lua          # neo-tree.nvim
+│   │   ├── lsp.lua              # Native LSP (vim.lsp.config)
+│   │   ├── treesitter.lua       # nvim-treesitter setup
+│   │   ├── ui.lua               # tokyonight + statusline
+│   │   ├── fuzzy.lua            # fzf-lua
+│   │   ├── git.lua              # gitsigns
+│   │   ├── editing.lua          # surround, autopairs, mini modules
+│   │   ├── explorer.lua         # neo-tree.nvim
 │   │   ├── formatting.lua       # conform.nvim
-│   │   ├── linting.lua           # nvim-lint
+│   │   ├── linting.lua          # nvim-lint
+│   │   ├── cmp.lua              # nvim-cmp autocompletion
 │   │   └── lang/
-│   │       ├── go.lua            # go.nvim
-│   │       ├── rust.lua          # crates.nvim
-│   │       └── ts.lua            # TS-specific
+│   │       ├── go.lua           # go.nvim
+│   │       ├── rust.lua         # crates.nvim
+│   │       └── ts.lua           # TS-specific
 │   └── util/
-│       └── statusline.lua        # Custom statusline renderer
+│       └── statusline.lua       # Custom statusline renderer
 └── guide.md                      # Full documentation
 ```
 
@@ -92,9 +93,27 @@ This is a Neovim v0.13+ configuration using native APIs (no lspconfig, no nvim-c
 - `<leader>gd` - Diff this
 - `<leader>gb` - Blame line
 
+### Autocompletion (nvim-cmp)
+- `<C-n>/<C-p>` - Navigate completion items
+- `<C-d>/<C-f>` - Scroll documentation
+- `<Tab>` - Select next / expand snippet
+- `<S-Tab>` - Select previous / jump back
+- `<CR>` - Confirm selection
+- `<C-e>` - Abort completion
+
 ---
 
 ## Plugins List
+
+### Autocompletion
+- `hrsh7th/nvim-cmp` - Main completion engine
+- `hrsh7th/cmp-nvim-lsp` - LSP completion source
+- `hrsh7th/cmp-buffer` - Buffer words completion
+- `hrsh7th/cmp-path` - Path completion
+- `hrsh7th/cmp-cmdline` - Command line completion
+- `L3MON4D3/LuaSnip` - Snippet engine
+- `saadparwaiz1/cmp_luasnip` - Snippet completion source
+- `onsails/lspkind.nvim` - Kind icons for completion menu
 
 ### Core
 - `nvim-treesitter/nvim-treesitter` - Parser management
@@ -133,6 +152,18 @@ This is a Neovim v0.13+ configuration using native APIs (no lspconfig, no nvim-c
 
 ---
 
+## Completion Sources (nvim-cmp)
+
+| Source | Priority | Keyword Length | Purpose |
+|--------|----------|----------------|---------|
+| `nvim_lsp` | 1000 | 1 | LSP completions |
+| `nvim_lsp_signature_help` | 950 | 1 | Function signatures |
+| `luasnip` | 900 | 2 | Snippets |
+| `buffer` | 700 | 3 | Buffer words |
+| `path` | 500 | 2 | File paths |
+
+---
+
 ## LSP Servers (Configured)
 
 | Server | Language |
@@ -159,7 +190,6 @@ Edit `lua/core/pack.lua`:
 vim.pack.add({
   src = 'https://github.com/author/plugin',
   event = 'BufReadPost',  -- or ft = {'go'}, cmd = 'Command'
-  config = function() require('plugins.pluginname').setup({}) end,
 })
 ```
 
@@ -197,7 +227,7 @@ git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
 
 | Task | Command |
 |------|---------|
-| Install plugins | `nvim --headless +'lua vim.pack.update()' +qa` |
+| Install plugins | `GIT_TERMINAL_PROMPT=0 nvim --headless "+lua vim.pack.update()" +qa` |
 | Install parser | `:TSInstall lua` |
 | Restart LSP | `:LspRestart` |
 | Format file | `<leader>cf` |
@@ -210,9 +240,19 @@ git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install
 
 - **Core config:** `lua/core/` (options, keymaps, autocmds, pack)
 - **Plugin configs:** `lua/plugins/` (lsp, treesitter, ui, fuzzy, git, etc.)
+- **Completion config:** `lua/plugins/cmp.lua` (nvim-cmp setup)
 - **Utilities:** `lua/util/statusline.lua`
 - **Lang configs:** `lua/plugins/lang/` (go, rust, ts)
 - **Full docs:** `guide.md`
+
+---
+
+## Performance Notes
+
+- Completion triggers immediately (`keyword_length = 1` for LSP)
+- Snippets load from friendly-snippets
+- Ghost text preview for completions
+- Bordered completion windows with themed highlights
 
 ---
 

@@ -31,7 +31,7 @@
 nvim --version
 
 # 2. Install all plugins
-nvim --headless +'lua vim.pack.update()' +qa
+GIT_TERMINAL_PROMPT=0 nvim --headless "+lua vim.pack.update()" +qa
 
 # 3. Install LSP servers (see Section 3)
 
@@ -72,12 +72,13 @@ nvim filename.lua    # Open a file
     │   ├── explorer.lua        # neo-tree.nvim file explorer
     │   ├── formatting.lua      # conform.nvim formatter
     │   ├── linting.lua         # nvim-lint linter
+    │   ├── cmp.lua             # nvim-cmp autocompletion setup
     │   └── lang/
     │       ├── go.lua          # Go-specific setup (go.nvim)
     │       ├── rust.lua        # Rust-specific setup (crates.nvim)
     │       └── ts.lua          # TypeScript-specific setup
     └── util/
-        └── statusline.lua      # Custom hand-written statusline
+        └── statusline.lua      # Custom statusline renderer
 ```
 
 ---
@@ -155,6 +156,19 @@ which rg fzf gopls rust-analyzer ts_ls clangd lua-language-server
 | `nvim-treesitter/nvim-treesitter` | Syntax highlighting, parsing | `BufReadPost` |
 | `nvim-treesitter/nvim-treesitter-textobjects` | Syntax-aware motions (`af`, `if`, etc.) | `BufReadPost` |
 | `ibhagwan/fzf-lua` | Fast fuzzy finder (uses fzf binary) | `cmd: FzfLua` |
+
+### Autocompletion (nvim-cmp)
+
+| Plugin | Purpose |
+|-------|---------|
+| `hrsh7th/nvim-cmp` | Main completion engine |
+| `hrsh7th/cmp-nvim-lsp` | LSP completion source |
+| `hrsh7th/cmp-buffer` | Buffer words completion |
+| `hrsh7th/cmp-path` | Path completion |
+| `hrsh7th/cmp-cmdline` | Command line completion |
+| `L3MON4D3/LuaSnip` | Snippet engine |
+| `saadparwaiz1/cmp_luasnip` | Snippet completion source |
+| `onsails/lspkind.nvim` | Kind icons for completion menu |
 
 ### UI Plugins
 
@@ -342,6 +356,18 @@ Note: Bufferline shows tabs at the top with buffer names and modified indicators
 | `<leader>cS` | Workspace symbols |
 | `<leader>ch` | Toggle inlay hints |
 
+### Autocompletion (nvim-cmp)
+
+| Keymap | Action |
+|--------|--------|
+| `<C-n>` / `<C-p>` | Navigate completion items |
+| `<C-d>` / `<C-f>` | Scroll documentation |
+| `<Tab>` | Select next / expand snippet |
+| `<S-Tab>` | Select previous / jump back |
+| `<CR>` | Confirm selection |
+| `<C-e>` | Abort completion |
+| `Ctrl+Y` | Disable completion |
+
 ### Diagnostics
 
 | Keymap | Action |
@@ -396,7 +422,31 @@ Note: Bufferline shows tabs at the top with buffer names and modified indicators
 
 ## 6. Features & Configuration Details
 
-### 6.1 Native LSP (v0.13+)
+### 6.1 Autocompletion (nvim-cmp)
+
+High-performance completion engine with multiple sources:
+
+**Completion Sources (by priority):**
+1. LSP (`nvim_lsp`) - Language server completions (priority 1000)
+2. Signature Help - Function signature completions (priority 950)
+3. LuaSnip - Snippet expansions (priority 900)
+4. Buffer - Words from other buffers (priority 700)
+5. Path - File path completions (priority 500)
+
+**Features:**
+- Auto-trigger on text change and insert enter
+- Ghost text for preview
+- Bordered completion and documentation windows
+- Snippet expansion with `<Tab>` / `<S-Tab>`
+- Fuzzy matching
+- Recent usage weighting
+
+**Snippet Support:**
+- LuaSnip engine with friendly-snippets
+- `<Tab>` to expand snippets
+- Jump forward with `<Tab>`, jump back with `<S-Tab>`
+
+### 6.2 Native LSP (v0.13+)
 
 This config uses Neovim's native LSP API (no `lspconfig` plugin needed):
 
@@ -414,7 +464,7 @@ This config uses Neovim's native LSP API (no `lspconfig` plugin needed):
 - `clangd` - C/C++
 
 **Native Completion:**
-- Enabled via `vim.lsp.completion.enable()` in LspAttach
+- Enabled via `cmp-nvim-lsp` integration
 - Triggered automatically on typing
 - Uses `vim.opt.completeopt` settings
 
@@ -422,7 +472,7 @@ This config uses Neovim's native LSP API (no `lspconfig` plugin needed):
 - Toggle with `<leader>ch`
 - Supported for Rust, TypeScript, Go
 
-### 6.2 Treesitter
+### 6.3 Treesitter
 
 **Installed Parsers:**
 - Languages: lua, vim, vimdoc, query
@@ -458,7 +508,7 @@ This config uses Neovim's native LSP API (no `lspconfig` plugin needed):
 - `<C-s>` - Scope selection
 - `<bs>` - Decrease selection
 
-### 6.3 Statusline (Custom)
+### 6.4 Statusline (Custom)
 
 Built from scratch in `lua/util/statusline.lua` - no plugin overhead.
 
@@ -482,7 +532,7 @@ Built from scratch in `lua/util/statusline.lua` - no plugin overhead.
 - Replace: Red
 - Terminal: Cyan
 
-### 6.4 Fuzzy Finder (fzf-lua)
+### 6.5 Fuzzy Finder (fzf-lua)
 
 Uses the `fzf` binary for maximum speed. All keymaps use `<leader>f*` prefix.
 
@@ -495,7 +545,7 @@ Features:
 - Keymaps
 - Treesitter nodes
 
-### 6.5 File Explorer (neo-tree.nvim)
+### 6.6 File Explorer (neo-tree.nvim)
 
 Tree-style file explorer with expand/collapse folders.
 
@@ -515,7 +565,7 @@ Features:
 - Shows git status icons
 - Real-time file watching
 
-### 6.6 Formatting (conform.nvim)
+### 6.7 Formatting (conform.nvim)
 
 Async formatting, runs on save.
 
@@ -528,7 +578,7 @@ Formatters by language:
 - Markdown: prettierd
 - Shell: shfmt
 
-### 6.7 Linting (nvim-lint)
+### 6.8 Linting (nvim-lint)
 
 Async linting on save and after leaving insert mode.
 
@@ -626,6 +676,13 @@ Auto-detected in `autocmds.lua`:
   - Treesitter
   - Undo files
 
+### Completion Performance
+
+- `keyword_length = 1` for LSP (immediate completions)
+- `throttle = 0` for instant responses
+- `max_item_count = 100` for LSP, `20` for snippets
+- `priority_weight = 2` for better sorting
+
 ---
 
 ## 9. Troubleshooting
@@ -650,6 +707,18 @@ Auto-detected in `autocmds.lua`:
 - Ensure server binary is in PATH: `which gopls`, `which rust-analyzer`
 - Restart LSP: `:LspRestart`
 - Check server config name matches exactly
+
+### Completion Issues
+
+```vim
+:CmpStatus              " Show completion status
+:lua require('cmp').setup({...})  " Debug completion config
+```
+
+**Check if cmp is loaded:**
+```vim
+:lua print(vim.inspect(require('cmp')))
+```
 
 ### Treesitter Issues
 
@@ -686,6 +755,12 @@ Check vim.pack status:
 - Run `:TSInstall <lang>` for missing parser
 - Check `:Inspect` for highlight source
 
+**"Do not require 'mini' directly"**
+- Fixed by requiring mini submodules directly (mini.comment, mini.ai, mini.move)
+
+**Headless plugin update timeout**
+- Use: `GIT_TERMINAL_PROMPT=0 nvim --headless "+lua vim.pack.update()" +qa`
+
 ---
 
 ## Configuration Files Summary
@@ -706,6 +781,7 @@ Check vim.pack status:
 | `plugins/explorer.lua` | neo-tree.nvim |
 | `plugins/formatting.lua` | conform.nvim |
 | `plugins/linting.lua` | nvim-lint |
+| `plugins/cmp.lua` | nvim-cmp completion |
 | `plugins/lang/go.lua` | Go-specific |
 | `plugins/lang/rust.lua` | Rust-specific |
 | `plugins/lang/ts.lua` | TS-specific |
