@@ -305,6 +305,10 @@
       "rev": "119e8961014c9bfaf1487bf3c2a393d254f337e2",
       "src": "https://github.com/kevinhwang91/promise-async"
     },
+    "pywal16": {
+      "rev": "190cc81189ebcb7a55cb73a936329675394d676f",
+      "src": "https://github.com/uZer/pywal16.nvim"
+    },
     "pywal16.nvim": {
       "rev": "190cc81189ebcb7a55cb73a936329675394d676f",
       "src": "https://github.com/uZer/pywal16.nvim"

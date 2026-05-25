@@ -8,7 +8,7 @@ local function setup()
 			name = "nvim-treesitter-textobjects",
 		},
 		{ src = "https://github.com/ibhagwan/fzf-lua", name = "fzf-lua" },
-		{ src = "https://github.com/folke/tokyonight.nvim", name = "tokyonight" },
+		{ src = "https://github.com/uZer/pywal16.nvim", name = "pywal16" },
 		{ src = "https://github.com/rebelot/kanagawa.nvim", name = "kanagawa" },
 		{ src = "https://github.com/nvim-lualine/lualine.nvim", name = "lualine" },
 		{ src = "https://github.com/j-hui/fidget.nvim", name = "fidget" },
