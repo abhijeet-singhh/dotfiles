@@ -36,7 +36,7 @@ This is a Neovim v0.13+ configuration using native APIs with **nvim-cmp** for au
 │   ├── plugins/
 │   │   ├── lsp.lua              # Native LSP (vim.lsp.config)
 │   │   ├── treesitter.lua       # nvim-treesitter setup
-│   │   ├── ui.lua               # tokyonight + statusline
+│   │   ├── ui.lua               # Theme system (register + picker)
 │   │   ├── fuzzy.lua            # fzf-lua
 │   │   ├── git.lua              # gitsigns
 │   │   ├── editing.lua          # surround, autopairs, mini modules
@@ -48,6 +48,10 @@ This is a Neovim v0.13+ configuration using native APIs with **nvim-cmp** for au
 │   │       ├── go.lua           # go.nvim
 │   │       ├── rust.lua         # crates.nvim
 │   │       └── ts.lua           # TS-specific
+│   ├── themes/
+│   │   ├── init.lua            # Theme module: register, list, apply
+│   │   ├── kanagawa.lua        # Kanagawa dragon config
+│   │   └── pywal.lua           # Pywal16 config
 │   └── util/
 │       └── statusline.lua       # Custom statusline renderer
 └── guide.md                      # Full documentation
@@ -63,7 +67,7 @@ This is a Neovim v0.13+ configuration using native APIs with **nvim-cmp** for au
 - `<C-d>/<C-u>` - Page scroll (centered)
 - `<Esc>` - Clear search
 - `<C-s>` - Save file
-- `<leader>T` - Switch theme (tokyonight ↔ kanagawa)
+- `<leader>T` - Open fzf theme picker (select from registered themes)
 
 ### Window
 - `<C-h/j/k/l>` - Navigate windows
@@ -121,7 +125,7 @@ This is a Neovim v0.13+ configuration using native APIs with **nvim-cmp** for au
 - `ibhagwan/fzf-lua` - Fuzzy finder
 
 ### UI
-- `folke/tokyonight.nvim` - Colorscheme
+- `uZer/pywal16.nvim` - Wallpaper-based colorscheme
 - `rebelot/kanagawa.nvim` - Colorscheme (dragon)
 - `j-hui/fidget.nvim` - LSP progress
 - `lukas-reineke/indent-blankline.nvim` - Indent guides
@@ -198,6 +202,20 @@ Edit `lua/plugins/lsp.lua`:
 ```lua
 vim.lsp.config('server_name', { settings = {...} })
 vim.lsp.enable({ 'server_name' })
+```
+
+### Adding a new theme:
+Create `lua/themes/mytheme.lua`:
+```lua
+local M = {}
+function M.setup()
+  -- setup and apply the colorscheme
+end
+return M
+```
+Then register in `lua/plugins/ui.lua`:
+```lua
+themes.register("mytheme", require("themes.mytheme"))
 ```
 
 ### Adding keymaps:

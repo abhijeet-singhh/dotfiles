@@ -65,7 +65,7 @@ nvim filename.lua    # Open a file
     ├── plugins/
     │   ├── lsp.lua             # Native LSP config (v0.13+)
     │   ├── treesitter.lua      # Parser management
-    │   ├── ui.lua              # Colorscheme + statusline setup
+    │   ├── ui.lua              # Colorscheme setup + theme switcher
     │   ├── fuzzy.lua           # fzf-lua configuration
     │   ├── git.lua             # gitsigns configuration
     │   ├── editing.lua         # surround, autopairs, mini modules
@@ -77,6 +77,10 @@ nvim filename.lua    # Open a file
     │       ├── go.lua          # Go-specific setup (go.nvim)
     │       ├── rust.lua        # Rust-specific setup (crates.nvim)
     │       └── ts.lua          # TypeScript-specific setup
+    ├── themes/
+    │   ├── init.lua            # Theme module: register, list, apply
+    │   ├── kanagawa.lua        # Kanagawa dragon config
+    │   └── pywal.lua           # Pywal16 config (wallpaper-based)
     └── util/
         └── statusline.lua      # Custom statusline renderer
 ```
@@ -174,7 +178,7 @@ which rg fzf gopls rust-analyzer ts_ls clangd lua-language-server
 
 | Plugin | Purpose | Lazy Loading |
 |--------|---------|--------------|
-| `folke/tokyonight.nvim` | Dark colorscheme (night style) | `VimEnter` |
+| `uZer/pywal16.nvim` | Wallpaper-based colorscheme | `VimEnter` |
 | `rebelot/kanagawa.nvim` | Dark colorscheme (dragon style) | `VimEnter` |
 | `j-hui/fidget.nvim` | LSP progress indicator | `LspAttach` |
 | `lukas-reineke/indent-blankline.nvim` | Indent guides | `BufReadPost` |
@@ -278,7 +282,7 @@ Note: Bufferline shows tabs at the top with buffer names and modified indicators
 
 | Keymap | Action |
 |--------|--------|
-| `<leader>T` | Switch between tokyonight-night and kanagawa-dragon |
+| `<leader>T` | Open fzf theme picker (select from registered themes) |
 
 ### Quickfix
 
@@ -532,7 +536,21 @@ Built from scratch in `lua/util/statusline.lua` - no plugin overhead.
 - Replace: Red
 - Terminal: Cyan
 
-### 6.5 Fuzzy Finder (fzf-lua)
+### 6.5 Theme System
+
+Modular theme system in `lua/themes/`. Each theme is a separate file that exports a `setup()` function.
+
+**To add a new theme:**
+1. Create `lua/themes/mytheme.lua` returning `{ setup = function() ... end }`
+2. Register it in `lua/plugins/ui.lua`:
+   ```lua
+   themes.register("mytheme", require("themes.mytheme"))
+   ```
+3. It'll appear in the `<leader>T` fzf picker automatically.
+
+**Default theme** is set via `themes.apply("kanagawa")` in `ui.lua`.
+
+### 6.6 Fuzzy Finder (fzf-lua)
 
 Uses the `fzf` binary for maximum speed. All keymaps use `<leader>f*` prefix.
 
@@ -545,7 +563,7 @@ Features:
 - Keymaps
 - Treesitter nodes
 
-### 6.6 File Explorer (neo-tree.nvim)
+### 6.7 File Explorer (neo-tree.nvim)
 
 Tree-style file explorer with expand/collapse folders.
 
@@ -565,7 +583,7 @@ Features:
 - Shows git status icons
 - Real-time file watching
 
-### 6.7 Formatting (conform.nvim)
+### 6.8 Formatting (conform.nvim)
 
 Async formatting, runs on save.
 
@@ -578,7 +596,7 @@ Formatters by language:
 - Markdown: prettierd
 - Shell: shfmt
 
-### 6.8 Linting (nvim-lint)
+### 6.9 Linting (nvim-lint)
 
 Async linting on save and after leaving insert mode.
 
@@ -774,7 +792,7 @@ Check vim.pack status:
 | `core/pack.lua` | Plugin registration |
 | `plugins/lsp.lua` | LSP configuration |
 | `plugins/treesitter.lua` | Treesitter setup |
-| `plugins/ui.lua` | Colorscheme + statusline |
+| `plugins/ui.lua` | Theme registration + picker |
 | `plugins/fuzzy.lua` | fzf-lua setup |
 | `plugins/git.lua` | gitsigns setup |
 | `plugins/editing.lua` | surround, autopairs, mini |
@@ -785,6 +803,9 @@ Check vim.pack status:
 | `plugins/lang/go.lua` | Go-specific |
 | `plugins/lang/rust.lua` | Rust-specific |
 | `plugins/lang/ts.lua` | TS-specific |
+| `themes/init.lua` | Theme module (register/list/apply) |
+| `themes/kanagawa.lua` | Kanagawa dragon config |
+| `themes/pywal.lua` | Pywal16 config |
 | `util/statusline.lua` | Custom statusline |
 
 ---
